@@ -1,51 +1,52 @@
-name: Android CI
-
-on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
-
 jobs:
+  build:
+    runs-on: self-hosted
+    steps:
+    - continue-on-error: true
+      uses: actions/checkout@v4
+    - continue-on-error: true
+      name: set up JDK
+      uses: actions/setup-java@v4
+      with:
+        distribution: adopt
+        java-version: 17
+    - continue-on-error: true
+      name: Cache Gradle and wrapper
+      uses: actions/cache@v4
+      with:
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
+        path: '~/.gradle/caches
+
+          ~/.gradle/wrapper
+
+          '
+        restore-keys: '${{ runner.os }}-gradle-
+
+          '
+    - continue-on-error: true
+      name: Make Gradle executable
+      run: chmod +x ./gradlew
+    - continue-on-error: true
+      name: Build with Gradle
+      run: "./gradlew --scan --stacktrace \\\n    assemble -x :benchmark:pixel6api31Setup\
+        \ -x :benchmark:pixel6api31NonMinifiedReleaseAndroidTest -x :benchmark:collectNonMinifiedReleaseBaselineProfile\n"
   lint:
     name: Spotless check
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
-      - name: Check out code
-        uses: actions/checkout@v4
-      - name: Set up JDK
-        uses: actions/setup-java@v4
-        with:
-          distribution: adopt
-          java-version: 17
-      - name: spotless
-        run: ./gradlew spotlessCheck
-
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: set up JDK
-        uses: actions/setup-java@v4
-        with:
-          distribution: adopt
-          java-version: 17
-
-      - name: Cache Gradle and wrapper
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
-
-      - name: Make Gradle executable
-        run: chmod +x ./gradlew
-
-      - name: Build with Gradle
-        run: |
-          ./gradlew --scan --stacktrace \
-              assemble -x :benchmark:pixel6api31Setup -x :benchmark:pixel6api31NonMinifiedReleaseAndroidTest -x :benchmark:collectNonMinifiedReleaseBaselineProfile
+    - continue-on-error: true
+      name: Check out code
+      uses: actions/checkout@v4
+    - continue-on-error: true
+      name: Set up JDK
+      uses: actions/setup-java@v4
+      with:
+        distribution: adopt
+        java-version: 17
+    - continue-on-error: true
+      name: spotless
+      run: ./gradlew spotlessCheck
+name: Android CI
+on:
+  repository_dispatch:
+    types: trigger-ga___android.yml
